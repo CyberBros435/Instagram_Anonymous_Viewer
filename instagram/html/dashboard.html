@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Anonymous Instagram Profile Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <link rel="stylesheet" href="/css/dashboard.css" />
+</head>
+
+<body>
+  <!-- Global Loading Overlay -->
+  <div id="globalLoading" class="global-loader-overlay d-none">
+    <div class="loader-content">
+      <div class="premium-spinner"></div>
+      <div id="globalLoaderTitle" class="mt-3 fw-bold text-dark">Loading Premium Dashboard...</div>
+      <div id="globalLoaderSub" class="small text-muted">Fetching profile insights</div>
+    </div>
+  </div>
+
+  <nav class="main-navbar">
+    <div class="container d-flex align-items-center justify-content-between">
+      <!-- Left: Logo -->
+      <a href="/" class="navbar-brand-custom">
+        <div class="brand-dot"></div>
+        <span>Instagram Dashboard</span>
+      </a>
+
+      <!-- Hamburger Button (Mobile Only) -->
+      <button class="navbar-toggler-custom d-lg-none" id="hamburgerBtn" aria-label="Toggle navigation">
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
+        <span class="burger-bar"></span>
+      </button>
+
+      <!-- Collapsible Menu -->
+      <div class="navbar-collapse-custom" id="navbarMenu">
+        <!-- Center: Links -->
+        <div class="navbar-links-center">
+          <a href="#">Services</a>
+          <a href="#">Tools</a>
+          <a href="#">Lab</a>
+          <a href="javascript:void(0)" id="privacyNoteBtn">Terms & Condition</a>
+        </div>
+
+        <!-- Right: Auth Buttons -->
+        <div class="navbar-auth-btns d-flex gap-2">
+          <button class="btn btn-auth-signin">Sign In</button>
+          <button class="btn btn-auth-signup">Sign Up</button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <div id="alertBox"></div>
+    <div class="card shadow-sm search-card">
+      <div class="card-body p-4">
+        <div class="row g-3 align-items-center">
+          <div class="col-lg-7">
+            <label class="form-label fw-semibold">Enter Instagram @username or profile link</label>
+            <div class="search-wrap">
+              <span class="at">@</span>
+              <input id="usernameInput" class="form-control form-control-lg"
+                placeholder="username (e.g. john_doe) or https://instagram.com/john_doe" autocomplete="off" />
+              <div id="hintBox" class="hint-box d-none"></div>
+            </div>
+            <!-- Premium Limit UI -->
+            <div id="limitWrap" class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="small fw-bold text-muted uppercase tracked-tight">Daily Search Limit</span>
+                <span id="limitText" class="small text-muted fw-semibold">0 / 0</span>
+              </div>
+              <div class="progress" style="height: 6px; background: #f1f5f9; border-radius: 10px; overflow: hidden;">
+                <div id="limitBar" class="progress-bar bg-primary" role="progressbar"
+                  style="width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-5 d-grid gap-2">
+            <button id="viewBtn" class="btn btn-primary btn-lg">
+              View Profile
+            </button>
+          </div>
+        </div>
+
+
+      </div>
+    </div>
+
+    <div id="alertBox" class="mt-3"></div>
+
+    <section id="profileSection" class="mt-4 d-none">
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+          <div class="d-flex flex-column flex-lg-row gap-4 align-items-start">
+            <div class="avatar-wrap">
+              <div class="ig-ring">
+                <img id="profilePic" src="" alt="Profile picture" />
+              </div>
+              <div class="mt-3 d-grid gap-2 w-100">
+                <button id="downloadPfpBtn" class="btn btn-outline-secondary">
+                  Download Profile
+                </button>
+                <button id="copyUrlBtn" class="btn btn-outline-secondary">
+                  Copy profile URL
+                </button>
+              </div>
+            </div>
+
+            <div class="flex-grow-1 w-100">
+              <div class="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <div>
+                  <div class="d-flex align-items-center gap-2 flex-wrap">
+                    <h2 id="igUsername" class="m-0 ig-username"></h2>
+                    <span id="privacyBadge" class="privacy-badge"></span>
+                  </div>
+                  <div id="fullName" class="full-name mt-1"></div>
+                  <div id="bio" class="bio mt-2"></div>
+                  <div class="mt-2">
+                    <a id="externalLink" class="external-link d-none" href="#" target="_blank" rel="noopener">External
+                      link</a>
+                  </div>
+                </div>
+              </div>
+
+              <div class="stats-row mt-4">
+                <div class="stat">
+                  <div class="stat-num" id="postsCount">—</div>
+                  <div class="stat-label">posts</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-num" id="followersCount">—</div>
+                  <div class="stat-label">followers</div>
+                </div>
+                <div class="stat">
+                  <div class="stat-num" id="followingCount">—</div>
+                  <div class="stat-label">following</div>
+                </div>
+              </div>
+
+              <div class="profile-links mt-3">
+                <div class="small text-muted">Profile link</div>
+                <a id="profileUrl" href="#" target="_blank" rel="noopener"></a>
+              </div>
+
+              <div id="privateNotice" class="private-notice d-none mt-4">
+                🔒 The profile is private and is not available in viewer.<br />
+                We respect privacy. Only public content is available. Please
+                use the viewer for public accounts.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs-wrap mt-4">
+        <ul class="nav nav-pills ig-tabs" id="igTabs">
+          <li class="nav-item">
+            <button class="nav-link active" data-tab="profile">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="me-2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+              Profile
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-tab="posts">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="me-2">
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+              </svg>
+              Posts
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-tab="reels">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="me-2">
+                <path
+                  d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2.04c-1.72-.46-8.6-.46-8.6-.46s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2.04C1 8.14 1 11.72 1 11.72s0 3.58.46 5.3a2.78 2.78 0 0 0 1.94 2.04c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2.04c.46-1.72.46-5.3.46-5.3s0-3.58-.46-5.3Z" />
+                <polygon points="9.75 15.02 15.5 11.72 9.75 8.42 9.75 15.02" />
+              </svg>
+              Reels
+            </button>
+          </li>
+          <li class="nav-item">
+            <button class="nav-link" data-tab="analytics">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="me-2">
+                <path d="M18 20V10M12 20V4M6 20v-6" />
+              </svg>
+              Analytics
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <div class="tab-panels">
+        <!-- Profile -->
+        <div class="tab-panel active" id="tab-profile">
+          <div class="card shadow-sm mt-3">
+            <div class="card-body p-4">
+              <h4 class="mb-2">Profile analytics</h4>
+              <div class="small text-muted">
+                This section is computed from publicly available info (not
+                Instagram Insights).
+              </div>
+
+              <div class="row g-3 mt-3">
+                <div class="col-md-4">
+                  <div class="mini-card">
+                    <div class="mini-title">Engagement estimate</div>
+                    <div class="mini-value" id="engagementEst">—</div>
+                    <div class="mini-sub">
+                      Based on recent likes+comments / followers
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mini-card">
+                    <div class="mini-title">Posting frequency</div>
+                    <div class="mini-value" id="postingFreq">—</div>
+                    <div class="mini-sub">
+                      Recent posts per week (approx.)
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="mini-card">
+                    <div class="mini-title">Last post date</div>
+                    <div class="mini-value" id="lastPostDate">—</div>
+                    <div class="mini-sub">From public post timestamps</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-posts">
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <h4 class="m-0">Posts</h4>
+          </div>
+
+          <div id="postsGrid" class="ig-grid mt-3"></div>
+
+          <div class="d-flex justify-content-center mt-3">
+            <button class="btn btn-outline-secondary btn-sm" id="loadMorePostsBtn">
+              Load more
+            </button>
+          </div>
+
+          <div id="postsEmpty" class="empty-box d-none mt-3">
+            No posts available to show.
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-reels">
+          <div class="d-flex justify-content-between align-items-center mt-3">
+            <h4 class="m-0">Reels</h4>
+          </div>
+
+          <div id="reelsGrid" class="ig-grid mt-3"></div>
+
+          <div class="d-flex justify-content-center mt-3">
+            <button class="btn btn-outline-secondary btn-sm" id="loadMoreReelsBtn">
+              Load more
+            </button>
+          </div>
+
+          <div id="reelsEmpty" class="empty-box d-none mt-3">
+            The user does not have Reels (or Reels are not publicly accessible).
+          </div>
+        </div>
+
+        <div class="tab-panel" id="tab-analytics">
+          <div class="card shadow-sm mt-3">
+            <div class="card-body p-4">
+              <div class="d-flex justify-content-between align-items-center gap-3 flex-wrap">
+                <div>
+                  <h4 class="mb-1">Performance graphs</h4>
+                  <div class="small text-muted">
+                    Graphs from public metrics only.
+                  </div>
+                </div>
+                <button class="btn btn-outline-secondary btn-sm" id="refreshAnalyticsBtn">
+                  Refresh
+                </button>
+              </div>
+
+              <div class="row g-4 mt-2">
+                <div class="col-lg-6">
+                  <div class="chart-card">
+                    <div class="chart-title mb-3 fw-semibold">
+                      Recent posts engagement trend
+                    </div>
+                    <canvas id="postsChart" height="140"></canvas>
+                  </div>
+                </div>
+                <div class="col-lg-6">
+                  <div class="chart-card">
+                    <div class="chart-title mb-3 fw-semibold">
+                      Recent reels performance trend
+                    </div>
+                    <canvas id="reelsChart" height="140"></canvas>
+                  </div>
+                </div>
+              </div>
+
+              <div class="small text-muted mt-3">
+                Graphs show engagement (likes + comments) for recent posts and view counts for reels.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+  </main>
+
+  <!-- Landing Content Sections -->
+  <section class="landing-section">
+    <div class="container text-center">
+      <div class="section-tag">Premium Service</div>
+      <h2 class="section-title">100% Anonymous Instagram Viewer</h2>
+      <p class="section-desc mx-auto" style="max-width: 700px;">
+        Explore any public Instagram profile without leaving a trace. No account required, no login needed, and
+        completely secure.
+      </p>
+
+      <div class="hero-features">
+        <div class="feature-icon-item">
+          <img src="/img/hero_icons.png" alt="Anonymous" style="object-fit: cover; object-position: 0 0;">
+          <h5>100% Anonymous</h5>
+          <p class="small text-muted">View profiles without being seen.</p>
+        </div>
+        <div class="feature-icon-item">
+          <img src="/img/hero_icons.png" alt="No Account" style="object-fit: cover; object-position: 50% 0;">
+          <h5>Without Account</h5>
+          <p class="small text-muted">No Instagram login required.</p>
+        </div>
+        <div class="feature-icon-item">
+          <img src="/img/hero_icons.png" alt="Save Content" style="object-fit: cover; object-position: 100% 0;">
+          <h5>Save Content</h5>
+          <p class="small text-muted">Download HD posts and videos.</p>
+        </div>
+      </div>
+
+      <div class="mt-4 small text-muted mx-auto" style="max-width: 600px;">
+        Inflact is not affiliated with Instagram™. We do not host any Instagram content. All rights belong to their
+        respective owners. We respect privacy — only public content is available.
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section bg-light">
+    <div class="container">
+      <div class="benefit-row">
+        <div class="benefit-content">
+          <div class="section-tag">About The Tool</div>
+          <h2 class="section-title">What is an Anonymous Instagram Profile Viewer?</h2>
+          <p class="section-desc">
+            An Instagram profile viewer is an anonymous service that provides access to public account content. Use the
+            tool to view an Instagram pfp or full profile information; it can handle both tasks.
+          </p>
+          <p class="section-desc">
+            The account owner, as well as Instagram, will never see any personal identifiers about you during the
+            process. You don’t need to log in to the platform—just use the search bar above and get Insta profile pic
+            view or other profile content you are looking for.
+          </p>
+        </div>
+        <div class="benefit-image">
+          <img src="/img/benefits.png" alt="Profile Viewer Description">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section">
+    <div class="container">
+      <div class="benefit-row">
+        <div class="benefit-image">
+          <img src="/img/benefits.png" alt="Benefits" style="transform: scaleX(-1);">
+        </div>
+        <div class="benefit-content text-end">
+          <div class="section-tag">Why Choose Us</div>
+          <h2 class="section-title">Benefits of IG Anonymous Profile Viewer</h2>
+          <div class="d-flex flex-column gap-2 align-items-end">
+            <span class="badge bg-dark rounded-pill px-3 py-2">Full anonymity</span>
+            <span class="badge bg-dark rounded-pill px-3 py-2">No account required</span>
+            <span class="badge bg-dark rounded-pill px-3 py-2">Multi-device accessibility</span>
+            <span class="badge bg-dark rounded-pill px-3 py-2">Easy-to-learn UI</span>
+            <span class="badge bg-dark rounded-pill px-3 py-2">Free to use</span>
+          </div>
+          <p class="mt-4 text-muted">
+            Whether you’re using the tool as an Instagram avatar viewer or full profile viewer, the service is capable
+            of it all.
+          </p>
+          <a href="#landing-pricing" class="btn btn-primary mt-3">Get Premium</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section bg-light" id="landing-pricing">
+    <div class="container text-center">
+      <div class="section-tag">Pricing Plans</div>
+      <h2 class="section-title">Pricing for Anon IG Profile Viewer</h2>
+      <p class="section-desc mx-auto" style="max-width: 600px;">
+        Our service is free with daily limitations. For heavy users, we offer a premium package with unlimited access.
+      </p>
+
+      <div class="row g-4 justify-content-center mt-4">
+        <div class="col-md-5">
+          <div class="price-box">
+            <h4>Free</h4>
+            <div class="price-val">$0.00</div>
+            <ul class="list-unstyled text-start mb-4">
+              <li class="mb-2">✔️ Public accounts only</li>
+              <li class="mb-2">✔️ Limited daily searches</li>
+              <li class="mb-2">✔️ Standard proxies</li>
+              <li class="mb-2 text-muted">❌ Unlimited viewing</li>
+              <li class="mb-2 text-muted">❌ 24/7 Support</li>
+            </ul>
+            <button class="btn btn-outline-dark w-100" disabled>Current Plan</button>
+          </div>
+        </div>
+        <div class="col-md-5">
+          <div class="price-box premium" style="background-image: url('/img/pricing_bg.png'); background-size: cover;">
+            <h4>Premium</h4>
+            <div class="price-val">$6.80<small class="fs-6">/mo</small></div>
+            <ul class="list-unstyled text-start mb-4">
+              <li class="mb-2">✔️ Unlimited viewing</li>
+              <li class="mb-2">✔️ Unlimited downloads</li>
+              <li class="mb-2">✔️ Followers tracking</li>
+              <li class="mb-2">✔️ Premium proxies</li>
+              <li class="mb-2">✔️ 24/7 Priority Support</li>
+            </ul>
+            <button class="btn btn-light w-100 fw-bold">Upgrade Now</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pricing-wrap overflow-auto">
+        <table class="pricing-table-custom mt-5">
+          <thead>
+            <tr>
+              <th class="pricing-feature-name">Features</th>
+              <th>Free</th>
+              <th>Premium</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="pricing-feature-name">Daily Search Limit</td>
+              <td>10 Searches</td>
+              <td>Unlimited</td>
+            </tr>
+            <tr>
+              <td class="pricing-feature-name">Content Downloads</td>
+              <td>Limited</td>
+              <td>Unlimited</td>
+            </tr>
+            <tr>
+              <td class="pricing-feature-name">Profile Analytics</td>
+              <td>Basic</td>
+              <td>Advanced</td>
+            </tr>
+            <tr>
+              <td class="pricing-feature-name">Premium Proxies</td>
+              <td>❌</td>
+              <td>✔️</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section class="landing-section">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-4">
+          <div class="section-tag">Need Help?</div>
+          <h2 class="section-title">FAQ</h2>
+          <p class="text-muted">If you have any questions about our service, visit our FAQ section or contact support.
+          </p>
+          <a href="mailto:followerig123@gmail.com" class="fw-bold text-dark">followerig123@gmail.com</a>
+        </div>
+        <div class="col-lg-8">
+          <div class="faq-grid">
+            <div class="faq-item">
+              <h5>What is an Instagram profile viewer?</h5>
+              <p class="small text-muted">It's an online tool that allows you to see public profile data (posts, reels,
+                bio) without needing an account.</p>
+            </div>
+            <div class="faq-item">
+              <h5>Is it really anonymous?</h5>
+              <p class="small text-muted">Yes. The account owner will never know you viewed their profile because we
+                don't connect your identity.</p>
+            </div>
+            <div class="faq-item">
+              <h5>Can I see private accounts?</h5>
+              <p class="small text-muted">No. We respect privacy and only show information that is already public on
+                Instagram.</p>
+            </div>
+            <div class="faq-item">
+              <h5>Is there a cost?</h5>
+              <p class="small text-muted">The basic tool is free with daily limits. A premium version is available for
+                unlimited access.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="main-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="brand d-flex align-items-center gap-2 mb-3">
+            <div class="brand-dot"></div>
+            <div class="brand-title">Instagram Dashboard</div>
+          </div>
+          <p class="small text-muted" style="max-width: 300px;">
+            The most advanced anonymous viewer for Instagram content. Built for privacy and performance.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h6>Support</h6>
+          <ul class="footer-links">
+            <li><a href="#">Help Center</a></li>
+            <li><a href="#">Contact Us</a></li>
+            <li><a href="#">Status</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h6>Tools</h6>
+          <ul class="footer-links">
+            <li><a href="#">Profile Search</a></li>
+            <li><a href="#">Post Downloader</a></li>
+            <li><a href="#">Analytics</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h6>Legal</h6>
+          <ul class="footer-links">
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Cookie Policy</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="mb-3">
+          <span class="mx-2">YouTube</span>
+          <span class="mx-2">Telegram</span>
+          <span class="mx-2">Twitter (X)</span>
+        </div>
+        &copy; 2026 Inflact Dashboard. All rights reserved.
+        <br>
+        <small class="mt-2 d-block">This application is not endorsed or certified by Instagram.</small>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <!-- Premium Modal Preview -->
+  <div id="premiumModal" class="modal-overlay d-none">
+    <div class="modal-card shadow-lg">
+      <div class="modal-header-custom">
+        <div id="modalTitle" class="modal-title-custom">Preview</div>
+        <button id="closeModalBtn" class="btn-close-custom">&times;</button>
+      </div>
+      <div class="modal-body-custom">
+        <div id="modalMediaContainer" class="modal-media-wrap">
+          <!-- img or video injected here -->
+        </div>
+        <div class="modal-info-wrap mt-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="modal-metrics d-flex gap-3">
+              <div class="metric"><span class="icon">❤</span> <span id="modalLikes">—</span></div>
+              <div id="modalCommentsWrap" class="metric"><span class="icon">💬</span> <span id="modalComments">—</span>
+              </div>
+              <div id="modalViewsWrap" class="metric d-none"><span class="icon">▶</span> <span id="modalViews">—</span>
+              </div>
+            </div>
+            <button id="modalDownloadBtn" class="btn btn-primary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                class="me-1">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+              </svg>
+              Download HD
+            </button>
+          </div>
+          <div id="modalCaption" class="modal-caption mt-3 small text-muted"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/dashboard.js"></script>
+</body>
+
+</html>

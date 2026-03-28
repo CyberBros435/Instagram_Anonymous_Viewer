@@ -1,0 +1,79 @@
+3. "The Master Guide": How to prompt AI to build this
+If you want to build another tool like this, you should divide your prompts into these 5 specific categories:
+
+Category 1: The Core Scraper (The Data)
+"Act as a Python expert. Create a script using the instaloader library to fetch a public Instagram profile's details (username, bio, followers, posts). Ensure the data is returned as a clean JSON dictionary. Include a function to handle 'Load More' pagination using iterators."
+
+Category 2: The Proxy System (The Content)
+"I need a Flask endpoint that acts as a media proxy. It should take a URL as a parameter, fetch that media (image or video) from Instagram using custom headers (User-Agent, X-IG-App-ID), and return it to the browser as a direct stream to bypass CORS blocks."
+
+Category 3: The Logic & Limits (The Control)
+"Implement a daily usage limit for my Flask app using flask.session. Users should be limited to 30 searches per 24 hours. The server should track the search count and reset it every day at midnight."
+
+Category 4: The Design (The UI/UX)
+"Create a professional, minimalist monochrome (Black/White/Gray) dashboard. Use CSS variables for a clean design system. Implement a responsive grid of squares for posts, soft box shadows for cards, and glassmorphism effects for the top header. Use 'Inter' or 'Roboto' typography."
+
+Category 5: The Analytics (The Value)
+"Write a JavaScript function using Chart.js that takes an array of engagement numbers (likes+comments) and dates. It should generate a sleek line graph with a custom gray color scheme and smooth curves. Calculate the engagement estimate as (Total likes + Total comments) / Followers."
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+=========================================
+
+Role: You are an expert Python developer specializing in web scraping, API interaction, and building resilient systems that can handle rate-limiting and network errors gracefully.
+
+Context: I have a Flask application (main.py) that uses multiple methods (Raw requests, GraphQL, Mobile App emulation, and Instaloader) to fetch Instagram profile data. Instagram frequently returns a 429 Too Many Requests error, which currently causes the application to fail or wait for a fixed 30 minutes. The session is already being used, and VPNs have been tried and are not a reliable solution.
+
+Task: Your task is to refactor the provided main.py code to implement a sophisticated, intelligent retry and throttling mechanism. The goal is to make the application "anti-gravity" — it should automatically slow down and wait when faced with rate limits, but always recover and continue without crashing. The user experience should be smooth, with the backend handling all retries transparently.
+
+Core Logic Requirements:
+
+Centralized Request Function: Create a single, centralized function, let's call it make_ig_request(method, url, headers, cookies, ...). All outgoing requests to Instagram's API (in get_cached_profile_raw, get_cached_profile_graphql, get_cached_profile_mobile, etc.) must be routed through this function.
+
+Intelligent Exponential Backoff: The make_ig_request function must implement an exponential backoff with jitter strategy for handling 429 errors and other transient network errors (like timeouts or 5xx status codes).
+
+Base Delay: Start with a base delay of 60 seconds.
+Backoff: On each consecutive failure for the same request, the delay should double (60s, 120s, 240s, 480s, etc.).
+Jitter: Add a random +/- 20% jitter to the delay to prevent multiple threads from retrying at the exact same time. For example, a 120s delay could become anywhere from 96s to 144s.
+Max Delay: Cap the maximum wait time at 30 minutes (1800 seconds).
+Success Reset: If a request succeeds, the retry counter and delay for that specific endpoint should reset.
+Per-Endpoint Rate Limiting: The retry logic must be tracked per-endpoint. For example, if the web_profile_info endpoint is rate-limited, the GraphQL endpoint should still be tried immediately. The backoff timer should only apply to the specific endpoint that failed.
+
+Seamless Integration: Modify get_cached_profile, get_cached_profile_graphql, get_cached_profile_mobile, and get_cached_profile_raw to use the new make_ig_request function. They should no longer contain their own try...except blocks for connection errors; the central function will handle everything. The calling code should not need to know about retries.
+
+User-Friendly Status Updates: When a 429 error occurs and the application is waiting, print a clear, informative message to the console like:
+🛑 Rate limited on [endpoint_name]. Waiting [calculated_delay] seconds before retry # [retry_count].
+This makes it clear the app is working, not stuck.
+
+Final Fallback Handling: The get_cached_profile function's chain of fallbacks (Raw -> GraphQL -> Mobile -> Instaloader) must be preserved. If one method fails permanently (e.g., returns a 403), the code should immediately move to the next method. The backoff should only be applied to 429 or transient errors.
+
+Thread Safety: The implementation must be thread-safe. Use threading.Lock() to ensure that the retry counters and timers for each endpoint are not corrupted by concurrent requests.
+
+Code Structure to Implement:
+
+Create a new dictionary at the top level to manage the state of each endpoint:
+python
+ENDPOINT_STATE = {
+    "web_profile_info": {"last_failure_time": 0, "retry_count": 0, "next_allowed_time": 0},
+    "graphql_query": {"last_failure_time": 0, "retry_count": 0, "next_allowed_time": 0},
+    "i_api_profile": {"last_failure_time": 0, "retry_count": 0, "next_allowed_time": 0},
+    # Add other endpoints as needed
+}
+ENDPOINT_STATE_LOCK = threading.Lock()
+Implement the make_ig_request function as described above.
+Refactor the existing get_..._profile functions to be thin wrappers that call make_ig_request with the correct parameters.
+Final Output:
+Provide the complete, modified main.py file. Ensure all existing functionality remains intact, but with the new robust anti-gravity retry mechanism fully integrated. The application should now be able to run for hours, automatically handling Instagram's rate limits without manual intervention.
